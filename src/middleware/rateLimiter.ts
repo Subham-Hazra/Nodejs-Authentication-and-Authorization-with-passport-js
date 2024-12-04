@@ -1,8 +1,14 @@
 // src/middleware/rateLimiter.ts
 import rateLimit from 'express-rate-limit';
 
-export const limiter = rateLimit({
+// Rate Limiting
+export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests
-  message: 'Too many requests from this IP, please try again later.',
+  max: 100, // Limit each IP to 100 requests per window
+  message: 'Too many requests, please try again later.',
+});
+
+export const protectedRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200, // Higher limit for protected routes
 });

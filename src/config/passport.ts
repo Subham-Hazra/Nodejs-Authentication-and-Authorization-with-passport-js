@@ -2,6 +2,7 @@ import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../models/userModel';
+import logger from '../utils/logger'; // Assuming a logger utility is available
 
 class PassportConfig {
   static configure(): void {
@@ -21,11 +22,13 @@ class PassportConfig {
           try {
             const user = await User.findById(jwtPayload.id);
             if (user) {
+              logger.info(`JWT authentication successful for user: ${user.id}`);
               return done(null, user);
             }
+            logger.warn(`JWT authentication failed: User not found for ID ${jwtPayload.id}`);
             return done(null, false, { message: 'User not found' });
-          } catch (error) {
-            console.error('Error in JWT Strategy:', error);
+          } catch (error: any) {
+            logger.error('Error in JWT Strategy', { error: error.message });
             return done(error, false);
           }
         }
@@ -38,27 +41,31 @@ class PassportConfig {
         try {
           const user = await User.findOne({ username });
           if (!user) {
+            logger.warn(`Local authentication failed: User not found with username ${username}`);
             return done(null, false, { message: 'Incorrect username' });
           }
 
           if (user.isLocked()) {
+            logger.warn(`Local authentication failed: Account locked for username ${username}`);
             return done(null, false, { message: 'Account is locked' });
           }
 
           const isMatch = await user.comparePassword(password);
           if (!isMatch) {
+            logger.warn(`Local authentication failed: Incorrect password for username ${username}`);
             return done(null, false, { message: 'Incorrect password' });
           }
 
+          logger.info(`Local authentication successful for username: ${username}`);
           return done(null, user);
-        } catch (error) {
-          console.error('Error in Local Strategy:', error);
+        } catch (error: any) {
+          logger.error('Error in Local Strategy', { error: error.message });
           return done(error);
         }
       })
     );
 
-    console.log("Passport Configuration Completed");
+    logger.info('Passport Configuration Completed');
   }
 }
 
