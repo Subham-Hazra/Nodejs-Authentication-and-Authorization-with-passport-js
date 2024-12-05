@@ -64,20 +64,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Use Authentication Routes
+// All Routes
 app.use("/api", router);
-router.stack.forEach((middleware: any) => {
-    console.log("middleware : ", middleware)
-    if (middleware.route) { // Routes registered directly
-      console.log(middleware.route.path);
-    } else if (middleware.name === 'router') { // Middleware that contains a router
-      middleware.handle.stack.forEach((handler: any) => {
-        if (handler.route) {
-          console.log('route : ',handler.route.path);
-        }
-      });
-    }
-  });
   
 
 export default app;
