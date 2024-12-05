@@ -1,11 +1,9 @@
-import { AppRouter } from "routes";
 import authRoutes from "./authRoutes";
 import protectedRoutes from "./protectedRoutes";
+import { AppRouter } from "./router";
 
-const router:any = AppRouter.router;
-// Use Authentication Routes
+const router = new AppRouter().routerInstance;
 router.use(authRoutes);
-//Use protected Routes
-router.use(protectedRoutes); // Protected routes
+router.use(protectedRoutes);
 
-export default router
+export default router;

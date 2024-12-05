@@ -1,15 +1,15 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
-import { validateRegistration, validateLogin } from '../utils/validation'; // Assuming these are validation middlewares
-import { AuthController } from '../controllers/authController'; // Importing the AuthController
-import logger from '../utils/logger'; // Logger for audit logs
-import AppRouter from './authRoutes';
+import { validateRegistration, validateLogin } from '../utils/validation';
+import { AuthController } from '../controllers/authController';
+import logger from '../utils/logger';
+import { AppRouter } from './router';
 
-const router:any = AppRouter.router;
+const router = new AppRouter().routerInstance;
 
 // Error handling middleware
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
-  const errors = validationResult(req); // Check for validation errors
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     logger.warn('Validation errors occurred', { errors: errors.array() });
     return res.status(400).json({
@@ -17,16 +17,16 @@ const handleValidationErrors = (req: Request, res: Response, next: NextFunction)
       errors: errors.array(),
     });
   }
-  next(); // Proceed to the next middleware if no validation errors
+  next();
 };
 
-// Enhanced audit logging middleware
+// Log request details
 const logRequestDetails = (req: Request, _: Response, next: NextFunction) => {
   logger.info(`Request received`, {
     route: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    body: req.body, // Be careful about logging sensitive data
+    body: req.body,
   });
   next();
 };
@@ -34,27 +34,27 @@ const logRequestDetails = (req: Request, _: Response, next: NextFunction) => {
 // Register route
 router.post(
   '/auth/register',
-  validateRegistration, // Custom validation middleware for registration
-  handleValidationErrors as any, // Error handling for validation errors
-  logRequestDetails, // Log request details for audit trail
-  AuthController.register // Call the register method in AuthController
+  validateRegistration,
+  handleValidationErrors as any,
+  logRequestDetails,
+  AuthController.register
 );
 
 // Login route
 router.post(
   '/auth/login',
-  validateLogin, // Custom validation middleware for login
-  handleValidationErrors as any, // Error handling for validation errors
-  logRequestDetails, // Log request details for audit trail
-  AuthController.login // Call the login method in AuthController
+  validateLogin,
+  handleValidationErrors as any,
+  logRequestDetails,
+  AuthController.login
 );
 
 // Refresh token route
 router.post(
   '/auth/refresh',
-  logRequestDetails, // Log request details for audit trail
-  handleValidationErrors as any, // Error handling for validation errors
-  AuthController.refreshToken // Call the refreshToken method in AuthController
+  logRequestDetails,
+  handleValidationErrors as any,
+  AuthController.refreshToken
 );
 
 export default router;

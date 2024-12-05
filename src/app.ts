@@ -8,9 +8,9 @@ import PassportConfig from "./config/passport";
 import helmet from "helmet";
 import cors from "cors";
 import { JwtUtils } from "./utils/jwtUtils";
-import protectedRoutes from "./routes/protectedRoutes";
-import { authRateLimiter, protectedRateLimiter } from "middleware/rateLimiter";
-import allRoutes from "routes/allRoutes";
+import { authRateLimiter, protectedRateLimiter } from "./middleware/rateLimiter";
+import { AppRouter } from "./routes/router";
+import router from "./routes/allRoutes";
 
 dotenv.config();
 
@@ -65,6 +65,19 @@ app.use((req, res, next) => {
 });
 
 // Use Authentication Routes
-app.use("/api", allRoutes);
+app.use("/api", router);
+router.stack.forEach((middleware: any) => {
+    console.log("middleware : ", middleware)
+    if (middleware.route) { // Routes registered directly
+      console.log(middleware.route.path);
+    } else if (middleware.name === 'router') { // Middleware that contains a router
+      middleware.handle.stack.forEach((handler: any) => {
+        if (handler.route) {
+          console.log('route : ',handler.route.path);
+        }
+      });
+    }
+  });
+  
 
 export default app;
